@@ -90,6 +90,10 @@ export async function generateDateCourse(
 
   const model = genAI.getGenerativeModel({ model: modelName });
 
+  if (systemContext) {
+    console.log("[Gemini] System Context:", systemContext);
+  }
+
   const historyText = history.map(msg => `${msg.role}: ${msg.content}`).join('\n');
 
   let searchContext = "";
@@ -170,7 +174,8 @@ export async function generateDateCourse(
                 category: p.category ?? undefined,
                 photoUrl: p.photoUrl ?? undefined,
                 openNow: p.openNow ?? undefined,
-                website: p.website ?? undefined
+                website: p.website ?? undefined,
+                openingHours: p.openingHours ? JSON.parse(p.openingHours) : undefined
               });
             }
           });
@@ -178,20 +183,10 @@ export async function generateDateCourse(
           console.error("[Gemini] DB Search Error:", dbErr);
         }
       } else {
-        // Fallback: If no google results, maybe try text search in DB? 
-        // Or if we parsed a region name, we could search DB by region (not implemented yet).
+        // Fallback...
       }
 
       candidatePlaces = Array.from(uniqueMap.values());
-
-      // 3. Distance Filtering (Optional but recommended)
-      // If mode is walk, maybe filter strictly? Let's just sort or rely on Prompt for now.
-      // But user asked for "must consider travel distance".
-      // We will provide distance info to the prompt? Or just ensure we only pass nearby places.
-      // We already filtered DB results by 2km. Google results usually are relevant.
-      // We will PASS "candidates" to the prompt, and relying on Gemini to pick logically connected ones?
-      // Better: We explicitly calculate distance between candidates if needed, but that's O(N^2).
-      // Let's trust Gemini with the provided list which is spatially clustered.
 
       // Format for Prompt
       // STRICTLY PASS ONLY REAL DATA
@@ -206,6 +201,7 @@ export async function generateDateCourse(
         address: p.address,
         location: p.location, // {lat, lng}
         openNow: p.openNow,
+        openingHours: p.openingHours?.weekdayDescriptions || "Unknown", // Pass summarized hours
         photo: p.photoUrl ? "Available" : "None"
       })), null, 2)}
             `;
@@ -225,6 +221,8 @@ export async function generateDateCourse(
         CONTEXT:
         - System: ${systemContext}
         - Transport: ${transportMode} (Even if this is 'car', the map path will be walking, but 'parkingInfo' is needed).
+        - History:
+        ${historyText}
         - User: ${userMessage}
         - Intent: ${isPlanningRequest ? "GENERATE_PLAN" : "CHAT_ONLY"}
         
@@ -232,13 +230,20 @@ export async function generateDateCourse(
         ${searchContext}
 
         INSTRUCTIONS:
-        1. **CHAT ONLY**: If Intent is CHAT_ONLY, answer the user warmly but VERY concisely. Maximum 2 sentences. No repetitive greetings. **Ask a direct question to guide the user's next step.**
+        1. **CHAT ONLY**: 
+           - **NO REDUNDANT QUESTIONS**: Do NOT ask for information already provided in the CONTEXT (e.g., if 'Partner' is known, don't ask "Who are you with?").
+           - **Use Context Intelligently**: If 'Partner' is 'Blind Date', implicitly suggest quiet/atmosphere-focused places. If 'Friend', suggest trendy/fun places.
+           - Answer warmly but VERY concisely (Max 2 sentences).
+           - Ask a *relevant* follow-up question based on what is missing (e.g., "Food preference" or "Vibe").
+
         2. **GENERATE PLAN**:
+           - **Context-Aware**: Optimize the course for the Partner and Time (e.g., "Blind Date" -> Romantic/Quiet, "Friend" -> Hip/Active).
            - If user wants a plan, generate 3 distinct options (Plan A, B, C).
            - **Not necessary, but important**: The generated plans must avoid **OVERLAPPING** in their main places (Restaurants, Cafes, Activity Spots). VALIDATE that Plan B does not use places from Plan A, and Plan C does not use places from A or B.
            - **Flexible Length**: Each plan should have **3 to 6 steps** based on the flow (e.g. Meal->Cafe->Walk->Detail).
            - **Specific Request**: If user asked for "Peach Pudding", YOU MUST INCLUDE IT if found in Search Results.
            - **Data**: USE ONLY Real Data from Search Results.
+           - **Time Check**: Check 'openingHours' of places. Ensure recommended places are OPEN at the likely visit time.
            - **Parking**: Include 'parkingInfo' if Transport is 'car'.
            - **Language**: Korean.
            

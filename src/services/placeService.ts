@@ -15,6 +15,7 @@ export interface Place {
     openNow: boolean | null;
     website: string | null;
     rawData: string | null;
+    openingHours: string | null; // Stored as JSON string
     cachedAt: Date;
     updatedAt: Date;
 }
@@ -40,6 +41,7 @@ function deg2rad(deg: number) {
 export async function upsertGooglePlace(place: GooglePlace) {
     try {
         const rawData = JSON.stringify(place);
+        const openingHoursFn = place.openingHours ? JSON.stringify(place.openingHours) : null;
 
         await prisma.place.upsert({
             where: { id: place.placeId },
@@ -55,6 +57,7 @@ export async function upsertGooglePlace(place: GooglePlace) {
                 openNow: place.openNow,
                 website: place.website,
                 rawData: rawData,
+                openingHours: openingHoursFn,
                 updatedAt: new Date(),
             },
             create: {
@@ -70,6 +73,7 @@ export async function upsertGooglePlace(place: GooglePlace) {
                 openNow: place.openNow,
                 website: place.website,
                 rawData: rawData,
+                openingHours: openingHoursFn,
             },
         });
         console.log(`[DB] Upserted place: ${place.title}`);

@@ -16,8 +16,9 @@ export interface GooglePlace {
     photoUrl?: string;
     category?: string;
     openNow?: boolean;
-    priceLevel?: string; // "PRICE_LEVEL_MODERATE" etc.
+    priceLevel?: string;
     website?: string;
+    openingHours?: any; // Raw JSON object from Google
 }
 
 /**
@@ -39,8 +40,8 @@ export async function searchGooglePlaces(query: string, limit: number = 3): Prom
             headers: {
                 'Content-Type': 'application/json',
                 'X-Goog-Api-Key': GOOGLE_API_KEY,
-                // FieldMask: Request only needed fields to save costs/latency
-                'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.userRatingCount,places.photos,places.types,places.regularOpeningHours.openNow,places.priceLevel,places.websiteUri'
+                // FieldMask: Added 'places.regularOpeningHours'
+                'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.userRatingCount,places.photos,places.types,places.regularOpeningHours,places.priceLevel,places.websiteUri'
             },
             body: JSON.stringify({
                 textQuery: query,
@@ -78,6 +79,7 @@ export async function searchGooglePlaces(query: string, limit: number = 3): Prom
                 photoUrl: photoUrl,
                 category: place.types ? place.types[0] : undefined,
                 openNow: place.regularOpeningHours?.openNow,
+                openingHours: place.regularOpeningHours, // Store full object
                 website: place.websiteUri
             };
         });

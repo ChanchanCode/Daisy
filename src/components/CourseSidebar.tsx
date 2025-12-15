@@ -53,18 +53,19 @@ export default function CourseSidebar({ plans, selectedPlanId, onSelectPlan, onS
 
     return (
         <div className={`
-            glass-panel w-full h-full flex flex-col pointer-events-auto
+            w-full h-full flex flex-col pointer-events-auto
+            bg-slate-900 border border-slate-700 rounded-2xl overflow-hidden shadow-2xl
             ${className}
         `}>
             {/* Header */}
-            <div className="p-6 border-b border-white/10 shrink-0">
+            <div className="p-4 bg-slate-800 border-b border-slate-700 shrink-0">
                 <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-full bg-violet-600 flex items-center justify-center shadow-lg shadow-violet-900/50">
-                        <span className="text-xl">📅</span>
+                    <div className="w-10 h-10 rounded-full bg-violet-600 flex items-center justify-center text-xl shadow-md">
+                        📅
                     </div>
                     <div>
                         <h2 className="font-bold text-white text-lg">데이트 코스</h2>
-                        <p className="text-xs text-violet-200">
+                        <p className="text-xs text-slate-400 font-medium">
                             AI 맞춤형 추천 플랜
                         </p>
                     </div>
@@ -72,7 +73,7 @@ export default function CourseSidebar({ plans, selectedPlanId, onSelectPlan, onS
 
                 {/* Plan Tabs */}
                 {plans.length > 0 && (
-                    <div className="flex bg-black/20 p-1 rounded-lg mb-4">
+                    <div className="flex bg-slate-700 p-1 rounded-lg mb-4">
                         {plans.map(plan => (
                             <button
                                 key={plan.id}
@@ -80,8 +81,8 @@ export default function CourseSidebar({ plans, selectedPlanId, onSelectPlan, onS
                                 className={`
                                     flex-1 py-1.5 text-xs font-bold rounded-md transition-all
                                     ${selectedPlanId === plan.id
-                                        ? 'bg-violet-600 text-white shadow-md'
-                                        : 'text-gray-400 hover:text-white hover:bg-white/5'}
+                                        ? 'bg-violet-600 text-white shadow-sm'
+                                        : 'text-slate-400 hover:text-white hover:bg-white/5'}
                                 `}
                             >
                                 Plan {plan.id}
@@ -93,19 +94,20 @@ export default function CourseSidebar({ plans, selectedPlanId, onSelectPlan, onS
                 {selectedPlan && (
                     <div className="mb-2">
                         <h3 className="text-white font-bold text-md">{selectedPlan.title}</h3>
-                        <p className="text-xs text-gray-400 mt-1 line-clamp-2">{selectedPlan.description}</p>
-                        <div className="flex items-center gap-2 mt-2 text-xs text-violet-300">
-                            <span>⏱️ {selectedPlan.totalDuration}</span>
-                            <span>•</span>
-                            <span>{selectedPlan.transportation === 'car' ? '🚗 자차' : selectedPlan.transportation === 'public' ? '🚌 대중교통' : '🚶 도보'}</span>
-                            {selectedPlan.totalDistance && <span>• {selectedPlan.totalDistance}</span>}
+                        <p className="text-xs text-slate-400 mt-1 line-clamp-2">{selectedPlan.description}</p>
+                        <div className="flex items-center gap-2 mt-2 text-xs text-violet-300 font-medium">
+                            <span className="bg-violet-500/10 px-2 py-0.5 rounded-full border border-violet-500/20">⏱️ {selectedPlan.totalDuration}</span>
+                            <span className="bg-violet-500/10 px-2 py-0.5 rounded-full border border-violet-500/20">
+                                {selectedPlan.transportation === 'car' ? '🚗 자차' : selectedPlan.transportation === 'public' ? '🚌 대중교통' : '🚶 도보'}
+                            </span>
+                            {selectedPlan.totalDistance && <span className="bg-violet-500/10 px-2 py-0.5 rounded-full border border-violet-500/20">📏 {selectedPlan.totalDistance}</span>}
                         </div>
                     </div>
                 )}
 
                 {selectedPlan?.parkingInfo && (
-                    <div className="mt-3 p-3 bg-white/5 rounded-lg border border-white/10 text-xs text-gray-300">
-                        <span className="font-bold text-violet-300">🅿️ 주차 팁:</span> {selectedPlan.parkingInfo}
+                    <div className="mt-3 p-3 bg-slate-900/50 rounded-lg border border-slate-700/50 text-xs text-slate-300">
+                        <span className="font-bold text-violet-400">🅿️ 주차 팁:</span> {selectedPlan.parkingInfo}
                     </div>
                 )}
             </div>

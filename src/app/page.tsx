@@ -32,6 +32,13 @@ export default function Page() {
   // Derived
   const selectedPlan = plans.find(p => p.id === selectedPlanId) || null;
 
+  // Helper for context translation
+  const getFormattedContext = (ctx: UserContext) => {
+    const partnerMap: Record<string, string> = { 'Lover': '연인', 'Friend': '친구', 'Family': '가족', 'Blind Date': '소개팅' };
+    const transportMap: Record<string, string> = { 'car': '자차', 'public': '대중교통', 'walk': '도보' };
+    return `Date: ${ctx.date}, Time: ${ctx.time}, Partner: ${partnerMap[ctx.partner] || ctx.partner}, Transport: ${transportMap[ctx.transport] || ctx.transport}`;
+  };
+
   const handleIntroComplete = async (ctx: UserContext) => {
     setUserContext(ctx);
 
@@ -47,7 +54,7 @@ export default function Page() {
         body: JSON.stringify({
           message: "HELLO_DAISY",
           history: [],
-          systemContext: `User Context: Date=${ctx.date}, Time=${ctx.time}, Partner=${ctx.partner}`,
+          systemContext: getFormattedContext(ctx),
           transportMode: ctx.transport
         })
       });
@@ -68,7 +75,7 @@ export default function Page() {
     setLoadingStatus("답변을 작성 중...");
     setSuggestions([]);
 
-    const ctxString = userContext ? `Date: ${userContext.date}, Time: ${userContext.time}, Partner: ${userContext.partner}, Transport: ${userContext.transport}` : "";
+    const ctxString = userContext ? getFormattedContext(userContext) : "";
     const transportMode = userContext?.transport || 'public';
 
     // UI Feedback for Planning
@@ -113,7 +120,7 @@ export default function Page() {
   async function handleGeneratePlan() {
     setIsGenerating(true);
     setLoadingStatus("코스를 생성 중...");
-    const ctxString = userContext ? `Date: ${userContext.date}, Time: ${userContext.time}, Partner: ${userContext.partner}` : "";
+    const ctxString = userContext ? getFormattedContext(userContext) : "";
     const transportMode = userContext?.transport || 'public';
 
     try {

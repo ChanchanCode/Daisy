@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,7 +8,7 @@ datasource db {
 }
 
 model Place {
-  id              String   @id // Google Place ID
+  id              String   @id
   title           String
   address         String
   lat             Float
@@ -20,12 +19,10 @@ model Place {
   photoUrl        String?
   openNow         Boolean?
   website         String?
-
-  // Store raw JSON for future-proofing or extra fields
-  rawData         String? // JSON string
-
+  rawData         String?
+  openingHours    String?  // Storing as JSON string for simplicity/compatibility 
   cachedAt        DateTime @default(now())
   updatedAt       DateTime @updatedAt
-  
-  @@index([lat, lng]) // Spatial index (simple)
+
+  @@index([lat, lng])
 }
