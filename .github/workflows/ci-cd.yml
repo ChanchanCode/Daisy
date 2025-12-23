@@ -1,0 +1,56 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "prod" ]
+  pull_request:
+    branches: [ "prod" ]
+
+jobs:
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Use Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Lint
+      run: npm run lint
+
+    - name: Build
+      run: npm run build
+
+  deploy:
+    name: Deploy to Oracle VM
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/prod'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Deploy using SSH
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.KEY }}
+        port: 22
+        script: |
+          # 프로젝트 경로로 이동 (경로를 실제 VM 환경에 맞게 수정해주세요)
+          cd ~/Daisy 
+          
+          # 최신 코드 받기
+          git pull origin prod
+          
+          # Docker 컨테이너 재빌드 및 실행
+          # (환경변수 설정이 되어 있어야 합니다)
+          docker compose up -d --build
+          
+          # 불필요한 이미지 정리
+          docker image prune -f
