@@ -18,7 +18,6 @@
     "kakao.maps.d.ts": "^0.1.40",
     "lucide-react": "^0.561.0",
     "next": "14.2.3",
-    "puppeteer": "^24.33.0",
     "react": "^18",
     "react-dom": "^18",
     "react-intersection-observer": "^10.0.0",
